@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -94,8 +95,11 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Rate is not found", http.StatusBadRequest)
 		return
 	}
-
-	insertOrder(id, params.Email)
+	fmt.Println(id, params.Email)
+	err = insertOrder(id, params.Email)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Fprintf(w, url)
 }
 
