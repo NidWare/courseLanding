@@ -61,7 +61,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch params.Rate {
 	case 1:
-		url, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, params.Phone)
+		url, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, params.Phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
@@ -108,7 +108,7 @@ func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Email: %s\n", webhook.Object.Metadata.Email)
 	fmt.Printf("Value: %.2f\n", value)
 
-	if value == 15000.00 {
+	if value == 10.00 {
 		a.CourseService.Invite(webhook.Object.Metadata.Email, 1)
 	} else if value == 30000.00 {
 		a.CourseService.Invite(webhook.Object.Metadata.Email, 2)
