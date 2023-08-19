@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -72,21 +73,23 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var id string
 
+	phone := convertPhoneNumber(params.Phone)
+
 	switch params.Rate {
 	case 1:
-		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 2:
-		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 3:
-		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
@@ -216,4 +219,13 @@ func insertOrder(id string, email string) error {
 
 	fmt.Println("Inserted order:", id, email)
 	return nil
+}
+
+func convertPhoneNumber(phoneNumber string) string {
+	if strings.HasPrefix(phoneNumber, "+7") {
+		return phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "8") {
+		return "7" + phoneNumber[1:]
+	}
+	return phoneNumber
 }
