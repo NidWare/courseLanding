@@ -9,7 +9,7 @@ import (
 )
 
 type CourseService interface {
-	Invite(email string)
+	Invite(email string, rate int)
 }
 
 type courseService struct {
@@ -18,12 +18,20 @@ type courseService struct {
 func NewCourseService() CourseService {
 	return &courseService{}
 }
-func (c *courseService) Invite(email string) {
+func (c *courseService) Invite(email string, rate int) {
 	apiURL := "https://skillspace.ru/api/open/v1/course/student-invite"
 
 	// Parameters
 	courseID := "14074"
-	groupID := "22749"
+	var groupID string
+	switch rate {
+	case 1:
+		groupID = "22749"
+	case 2:
+		groupID = "24378"
+	case 3:
+		groupID = "24379"
+	}
 	token := "a70c4e05-26f2-3b73-8235-39833dd49747"
 	name := "Student Name"
 	comment := "Your Comment"

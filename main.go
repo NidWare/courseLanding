@@ -3,14 +3,13 @@ package main
 import (
 	"courseLanding/internal/app"
 	"courseLanding/internal/service"
+	"crypto/tls"
 	"database/sql"
 	"github.com/gorilla/mux"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
-	"time"
 )
-
-type Callback func()
 
 func main() {
 	//db
@@ -45,13 +44,22 @@ func main() {
 	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
 	//server
-	srv := &http.Server{
-		Handler:      r,
-		Addr:         "0.0.0.0:8443",
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+	cert, err := tls.LoadX509KeyPair("/app/cert.pem", "/app/key.pem")
+	if err != nil {
+		log.Fatalf("failed to load keys: %v", err)
 	}
 
-	//start
-	log.Fatal(srv.ListenAndServeTLS("cert.pem", "key.pem"))
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		// other TLS settings here
+	}
+
+	server := &http.Server{
+		Addr:      ":8443",
+		TLSConfig: tlsConfig,
+		Handler:   r,
+		// other server settings here
+	}
+
+	log.Fatal(server.ListenAndServeTLS("", ""))
 }

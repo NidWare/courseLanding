@@ -108,6 +108,14 @@ func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Email: %s\n", webhook.Object.Metadata.Email)
 	fmt.Printf("Value: %.2f\n", value)
 
+	if value == 15000.00 {
+		a.CourseService.Invite(webhook.Object.Metadata.Email, 1)
+	} else if value == 30000.00 {
+		a.CourseService.Invite(webhook.Object.Metadata.Email, 2)
+	} else if value == 60000.00 {
+		a.CourseService.Invite(webhook.Object.Metadata.Email, 3)
+	}
+
 	// Log the structure to a string
 	logString, err := json.MarshalIndent(webhook, "", "  ")
 	if err != nil {
