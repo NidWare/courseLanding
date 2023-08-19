@@ -138,6 +138,7 @@ func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	counterService := service.NewCounterService()
 	w.Header().Set("Content-Type", "text/plain")
 
