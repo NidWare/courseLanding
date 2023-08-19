@@ -8,7 +8,7 @@ import (
 )
 
 type PaymentService interface {
-	MakePayment(value float64, fullName string, email string, phone string) (string, error)
+	MakePayment(value float64, fullName string, email string, phone string) (string, string, error)
 }
 
 type paymentService struct {
@@ -18,16 +18,16 @@ func NewPaymentService() PaymentService {
 	return &paymentService{}
 }
 
-func (p *paymentService) MakePayment(value float64, fullName string, email string, phone string) (string, error) {
+func (p *paymentService) MakePayment(value float64, fullName string, email string, phone string) (string, string, error) {
 	req, err := createPaymentRequest(value, fullName, email, phone)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
@@ -35,16 +35,18 @@ func (p *paymentService) MakePayment(value float64, fullName string, email strin
 		Confirmation struct {
 			ConfirmationURL string `json:"confirmation_url"`
 		} `json:"confirmation"`
+		ID string `json:"id"`
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&paymentResponse)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	confirmationURL := paymentResponse.Confirmation.ConfirmationURL
+	paymentID := paymentResponse.ID
 
-	return confirmationURL, nil
+	return confirmationURL, paymentID, nil
 }
 
 func createPaymentRequest(value float64, fullName string, email string, phone string) (*http.Request, error) {

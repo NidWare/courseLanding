@@ -3,6 +3,7 @@ package app
 import (
 	"courseLanding/internal/config"
 	"courseLanding/internal/service"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,22 +59,23 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	var url string
 	var err error
+	var id string
 
 	switch params.Rate {
 	case 1:
-		url, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, params.Phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 2:
-		url, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, params.Phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 3:
-		url, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, params.Phone)
+		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, params.Phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
@@ -82,6 +84,8 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Rate is not found", http.StatusBadRequest)
 		return
 	}
+
+	insertOrder(id, params.Email)
 	fmt.Fprintf(w, url)
 }
 
@@ -135,6 +139,8 @@ func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	counterService := service.NewCounterService()
+	w.Header().Set("Content-Type", "text/plain")
+
 	if counterService.GetCounter() >= config.MaxSell {
 		fmt.Fprintf(w, "3")
 		return
@@ -168,4 +174,42 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "2")
 	return
+}
+
+// code standarts ignored:
+
+func insertOrder(id string, email string) error {
+	// Open SQLite database
+	db, err := sql.Open("sqlite3", "./orders.db")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Check if the table exists, if not create it
+	createTableQuery := `
+	CREATE TABLE IF NOT EXISTS orders (
+	    id   TEXT PRIMARY KEY,
+	    email TEXT NOT NULL
+	);`
+	_, err = db.Exec(createTableQuery)
+	if err != nil {
+		return err
+	}
+
+	// Prepare statement to insert data into "orders" table
+	stmt, err := db.Prepare("INSERT INTO orders(id, email) VALUES(?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	// Execute the statement with provided id and email
+	_, err = stmt.Exec(id, email)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Inserted order:", id, email)
+	return nil
 }
