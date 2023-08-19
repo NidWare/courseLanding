@@ -64,7 +64,7 @@ func main() {
 
 	//router
 	r := mux.NewRouter()
-	r.HandleFunc("/buy", application.BuyHandler).Methods("POST")
+	r.HandleFunc("/buy", application.BuyHandler).Methods("POST", "OPTIONS")
 	r.HandleFunc("/status", application.StatusHandler).Methods("GET")
 	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
