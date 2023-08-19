@@ -92,6 +92,9 @@ func main() {
 type PaymentResponse struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
+	Amount struct {
+		Value string `json:"value"`
+	} `json:"amount"`
 }
 
 func createTableIfNotExists() error {
@@ -142,7 +145,7 @@ func checkPayments(c service.CourseService) {
 		}
 
 		if status == "succeeded" {
-			// Вывод адреса электронной почты вместо "good"
+			if
 			c.Invite(email, 1)
 			if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
 				log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
@@ -151,29 +154,29 @@ func checkPayments(c service.CourseService) {
 	}
 }
 
-func checkPaymentStatus(paymentID string) (string, error) {
+func checkPaymentStatus(paymentID string) (string, string, error) {
 	req, err := http.NewRequest("GET", apiURL+paymentID, nil)
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 	req.SetBasicAuth(username, password)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 
 	var paymentResponse PaymentResponse
 	if err := json.Unmarshal(body, &paymentResponse); err != nil {
-		return "", err
+		return "","", err
 	}
 
-	return paymentResponse.Status, nil
+	return paymentResponse.Status, paymentResponse.Amount.Value, nil
 }
