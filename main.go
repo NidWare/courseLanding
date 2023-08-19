@@ -3,7 +3,6 @@ package main
 import (
 	"courseLanding/internal/app"
 	"courseLanding/internal/service"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -19,7 +18,7 @@ const (
 	username   = "233943"
 	password   = "live_UcVgvEGQhiow2l_nJYE-GYSOjt0mBdiqRBbP7N-_xdE"
 	dbPath     = "orders.db"
-	checkDelay = 5 * time.Minute
+	checkDelay = 1 * time.Minute
 )
 
 func main() {
@@ -68,21 +67,9 @@ func main() {
 	r.HandleFunc("/status", application.StatusHandler).Methods("GET")
 	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
-	//server
-	cert, err := tls.LoadX509KeyPair("/app/cert.pem", "/app/key.pem")
-	if err != nil {
-		log.Fatalf("failed to load keys: %v", err)
-	}
-
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		// other TLS settings here
-	}
-
 	server := &http.Server{
-		Addr:      ":8443",
-		TLSConfig: tlsConfig,
-		Handler:   r,
+		Addr:    ":8443",
+		Handler: r,
 		// other server settings here
 	}
 
@@ -131,6 +118,7 @@ func checkPayments(c service.CourseService) {
 		log.Fatal(err)
 	}
 	defer rows.Close()
+	var paymentsToDelete []string
 
 	for rows.Next() {
 		var paymentID, email string
@@ -145,6 +133,7 @@ func checkPayments(c service.CourseService) {
 		}
 
 		if status == "succeeded" {
+			paymentsToDelete = append(paymentsToDelete, paymentID)
 			if amount == "10.00" {
 				c.Invite(email, 1)
 			}
@@ -154,9 +143,13 @@ func checkPayments(c service.CourseService) {
 			if amount == "60000.00" {
 				c.Invite(email, 3)
 			}
-			if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
-				log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
-			}
+		}
+	}
+	rows.Close() // close the rows explicitly
+
+	for _, paymentID := range paymentsToDelete {
+		if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
+			log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
 		}
 	}
 }
