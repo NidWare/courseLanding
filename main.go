@@ -1,15 +1,13 @@
 package main
 
 import (
+	"courseLanding/internal/app"
 	"courseLanding/internal/service"
 	"database/sql"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/mux"
-
-	"courseLanding/internal/app"
 )
 
 type Callback func()
@@ -31,7 +29,14 @@ func main() {
 	repository := service.NewRepositoryService(db)
 	counter := service.NewCounterService()
 	payment := service.NewPaymentService()
-	application := app.Application{CounterService: counter, PaymentService: payment, RepositoryService: repository}
+	course := service.NewCourseService()
+
+	application := app.Application{
+		CounterService:    counter,
+		PaymentService:    payment,
+		RepositoryService: repository,
+		CourseService:     course,
+	}
 
 	//router
 	r := mux.NewRouter()
