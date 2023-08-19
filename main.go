@@ -31,12 +31,12 @@ func main() {
 	}
 
 	// Запуск фоновой проверки платежей
-	go func(course *service.CourseService) {
+	go func(course service.CourseService) {
 		for {
 			checkPayments(course)
 			time.Sleep(checkDelay)
 		}
-	}(&course)
+	}(course)
 
 	//db
 	db, err := sql.Open("sqlite3", "./counter.db")
