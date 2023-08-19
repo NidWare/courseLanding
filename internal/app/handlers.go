@@ -124,7 +124,7 @@ func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the log string to a text file
-	err = ioutil.WriteFile("../log/webhook_log.txt", logString, 0644)
+	err = ioutil.WriteFile("webhook_log.txt", logString, 0644)
 	if err != nil {
 		http.Error(w, "Error writing to log file", http.StatusInternalServerError)
 		return
