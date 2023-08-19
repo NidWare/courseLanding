@@ -94,18 +94,6 @@ type PaymentResponse struct {
 	Status string `json:"status"`
 }
 
-func checker() {
-	err := createTableIfNotExists()
-	if err != nil {
-		log.Fatalf("Failed to create table: %v", err)
-	}
-
-	for {
-		checkPayments()
-		time.Sleep(checkDelay)
-	}
-}
-
 func createTableIfNotExists() error {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
