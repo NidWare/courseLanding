@@ -78,7 +78,7 @@ func createPaymentDataPayload(value float64, fullName, email string, phone strin
 		"capture": true,
 		"confirmation": map[string]string{
 			"type":       "redirect",
-			"return_url": "https://google.com",
+			"return_url": "https://www.trabun.ai/",
 		},
 		"description": "Заказ №1",
 		"receipt": map[string]interface{}{
