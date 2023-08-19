@@ -138,15 +138,22 @@ func checkPayments(c service.CourseService) {
 			log.Fatal(err)
 		}
 
-		status, err := checkPaymentStatus(paymentID)
+		status, amount, err := checkPaymentStatus(paymentID)
 		if err != nil {
 			log.Printf("Failed to check payment status for %s: %v", paymentID, err)
 			continue
 		}
 
 		if status == "succeeded" {
-			if
-			c.Invite(email, 1)
+			if amount == "10.00" {
+				c.Invite(email, 1)
+			}
+			if amount == "30000.00" {
+				c.Invite(email, 2)
+			}
+			if amount == "60000.00" {
+				c.Invite(email, 3)
+			}
 			if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
 				log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
 			}
@@ -157,25 +164,25 @@ func checkPayments(c service.CourseService) {
 func checkPaymentStatus(paymentID string) (string, string, error) {
 	req, err := http.NewRequest("GET", apiURL+paymentID, nil)
 	if err != nil {
-		return "","", err
+		return "", "", err
 	}
 	req.SetBasicAuth(username, password)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "","", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "","", err
+		return "", "", err
 	}
 
 	var paymentResponse PaymentResponse
 	if err := json.Unmarshal(body, &paymentResponse); err != nil {
-		return "","", err
+		return "", "", err
 	}
 
 	return paymentResponse.Status, paymentResponse.Amount.Value, nil
