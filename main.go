@@ -42,11 +42,11 @@ func main() {
 	//server
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "0.0.0.0:8080",
+		Addr:         "0.0.0.0:8443",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	//start
-	log.Fatal(srv.ListenAndServe())
+	log.Fatal(srv.ListenAndServeTLS("cert.pem", "key.pem"))
 }
