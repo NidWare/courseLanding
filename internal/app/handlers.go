@@ -44,6 +44,8 @@ type Metadata struct {
 }
 
 func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	type RequestParams struct {
 		Rate  int    `json:"rate"`
 		Name  string `json:"name"`
