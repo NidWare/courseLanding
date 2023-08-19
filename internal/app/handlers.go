@@ -201,19 +201,8 @@ func insertOrder(id string, email string) error {
 	}
 	defer db.Close()
 
-	// Check if the table exists, if not create it
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS orders (
-	    id   TEXT PRIMARY KEY,
-	    email TEXT NOT NULL
-	);`
-	_, err = db.Exec(createTableQuery)
-	if err != nil {
-		return err
-	}
-
 	// Prepare statement to insert data into "orders" table
-	stmt, err := db.Prepare("INSERT INTO orders(id, email) VALUES(?, ?)")
+	stmt, err := db.Prepare("INSERT INTO orders(payment_id, email) VALUES(?, ?)")
 	if err != nil {
 		return err
 	}
