@@ -3,6 +3,7 @@ package main
 import (
 	"courseLanding/internal/app"
 	"courseLanding/internal/service"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -82,24 +83,24 @@ func main() {
 	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
 	//server
-	//cert, err := tls.LoadX509KeyPair("/app/cert.pem", "/app/key.pem")
-	//if err != nil {
-	//	log.Fatalf("failed to load keys: %v", err)
-	//}
-	//
-	//tlsConfig := &tls.Config{
-	//	Certificates: []tls.Certificate{cert},
-	//	// other TLS settings here
-	//}
-
-	server := &http.Server{
-		Addr:    ":443",
-		Handler: r,
-		//TLSConfig: tlsConfig,
-		// other server settings here
+	cert, err := tls.LoadX509KeyPair("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem")
+	if err != nil {
+		log.Fatalf("failed to load keys: %v", err)
 	}
 
-	log.Fatal(server.ListenAndServeTLS("", ""))
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		// other TLS settings here
+	}
+
+	server := &http.Server{
+		Addr:      ":443",
+		Handler:   r,
+		TLSConfig: tlsConfig,
+		//other server settings here
+	}
+
+	log.Fatal(server.ListenAndServeTLS("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem"))
 }
 
 type PaymentResponse struct {
