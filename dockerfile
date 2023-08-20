@@ -17,8 +17,8 @@ WORKDIR /app
 COPY --from=build /app .
 
 # Copy certificates (make sure they are available on your host system)
-COPY /etc/letsencrypt/live/example.com/fullchain.pem /app/cert.pem
-COPY /etc/letsencrypt/live/example.com/privkey.pem /app/key.pem
+COPY /etc/letsencrypt/live/lsukhinin.site/fullchain.pem /app/cert.pem
+COPY /etc/letsencrypt/live/lsukhinin.site/privkey.pem /app/key.pem
 
 # Run the application
 ENTRYPOINT ["/app/dist/main"]
