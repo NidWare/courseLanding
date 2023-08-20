@@ -6,11 +6,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -104,54 +101,6 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	fmt.Fprintf(w, url)
-}
-
-func (a *Application) WebhookHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
-		return
-	}
-
-	var webhook Webhook
-	err = json.Unmarshal(body, &webhook)
-	if err != nil {
-		http.Error(w, "Error unmarshaling JSON", http.StatusBadRequest)
-		return
-	}
-
-	value, err := strconv.ParseFloat(webhook.Object.Amount.Value, 64)
-	if err != nil {
-		http.Error(w, "Error converting value to float", http.StatusBadRequest)
-		return
-	}
-
-	fmt.Printf("Email: %s\n", webhook.Object.Metadata.Email)
-	fmt.Printf("Value: %.2f\n", value)
-
-	if value == 10.00 {
-		a.CourseService.Invite(webhook.Object.Metadata.Email, 1)
-	} else if value == 30000.00 {
-		a.CourseService.Invite(webhook.Object.Metadata.Email, 2)
-	} else if value == 60000.00 {
-		a.CourseService.Invite(webhook.Object.Metadata.Email, 3)
-	}
-
-	// Log the structure to a string
-	logString, err := json.MarshalIndent(webhook, "", "  ")
-	if err != nil {
-		http.Error(w, "Error marshaling JSON for log", http.StatusInternalServerError)
-		return
-	}
-
-	// Write the log string to a text file
-	err = ioutil.WriteFile("webhook_log.txt", logString, 0644)
-	if err != nil {
-		http.Error(w, "Error writing to log file", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusBadRequest)
 }
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {

@@ -80,7 +80,6 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/buy", application.BuyHandler).Methods("POST", "OPTIONS")
 	r.HandleFunc("/status", application.StatusHandler).Methods("GET")
-	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
 	//server
 	cert, err := tls.LoadX509KeyPair("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem")
@@ -160,6 +159,8 @@ func checkPayments(c service.CourseService) {
 		}
 
 		if status == "succeeded" {
+			counterService := service.NewCounterService()
+			counterService.Increment()
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
