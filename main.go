@@ -3,7 +3,6 @@ package main
 import (
 	"courseLanding/internal/app"
 	"courseLanding/internal/service"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -23,6 +22,20 @@ const (
 )
 
 func main() {
+	// HTTP-сервер, который будет перенаправлять на HTTPS
+	httpServer := &http.Server{
+		Addr: ":80",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "https://"+r.Host+r.RequestURI, http.StatusMovedPermanently)
+		}),
+	}
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil {
+			log.Fatalf("HTTP server failed: %v", err)
+		}
+	}()
+
 	course := service.NewCourseService()
 	// Создание таблицы, если её нет
 	err := createTableIfNotExists()
@@ -69,20 +82,20 @@ func main() {
 	r.HandleFunc("/webhook", application.WebhookHandler).Methods("POST")
 
 	//server
-	cert, err := tls.LoadX509KeyPair("/app/cert.pem", "/app/key.pem")
-	if err != nil {
-		log.Fatalf("failed to load keys: %v", err)
-	}
-
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		// other TLS settings here
-	}
+	//cert, err := tls.LoadX509KeyPair("/app/cert.pem", "/app/key.pem")
+	//if err != nil {
+	//	log.Fatalf("failed to load keys: %v", err)
+	//}
+	//
+	//tlsConfig := &tls.Config{
+	//	Certificates: []tls.Certificate{cert},
+	//	// other TLS settings here
+	//}
 
 	server := &http.Server{
-		Addr:      ":443",
-		Handler:   r,
-		TLSConfig: tlsConfig,
+		Addr:    ":443",
+		Handler: r,
+		//TLSConfig: tlsConfig,
 		// other server settings here
 	}
 
@@ -157,9 +170,6 @@ func checkPayments(c service.CourseService) {
 			}
 			if amount == "60000.00" {
 				c.Invite(email, 3)
-			}
-			if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
-				log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
 			}
 		}
 	}
