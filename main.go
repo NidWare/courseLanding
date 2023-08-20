@@ -164,7 +164,7 @@ func checkPayments(c service.CourseService) {
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
-			if amount == "10.00" {
+			if amount == "15000.00" {
 				c.Invite(email, 1)
 			}
 			if amount == "30000.00" {

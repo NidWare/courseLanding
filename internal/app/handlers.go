@@ -74,7 +74,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch params.Rate {
 	case 1:
-		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
