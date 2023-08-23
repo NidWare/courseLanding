@@ -160,17 +160,19 @@ func checkPayments(c service.CourseService) {
 
 		if status == "succeeded" {
 			counterService := service.NewCounterService()
-			counterService.Increment()
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
-			if amount == "15000.00" {
+			if amount == "10.00" {
+				counterService.Increment(1)
 				c.Invite(email, 1)
 			}
 			if amount == "30000.00" {
+				counterService.Increment(2)
 				c.Invite(email, 2)
 			}
 			if amount == "60000.00" {
+				counterService.Increment(3)
 				c.Invite(email, 3)
 			}
 		}

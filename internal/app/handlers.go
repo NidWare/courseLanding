@@ -72,20 +72,34 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	phone := convertPhoneNumber(params.Phone)
 
+	counter := a.CounterService.GetCounter()
+
 	switch params.Rate {
 	case 1:
+		if counter[0] > config.MaxSell[0] {
+			http.Error(w, "Sold out", http.StatusBadRequest)
+			return
+		}
 		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 2:
+		if counter[1] > config.MaxSell[1] {
+			http.Error(w, "Sold out", http.StatusBadRequest)
+			return
+		}
 		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 3:
+		if counter[2] > config.MaxSell[2] {
+			http.Error(w, "Sold out", http.StatusBadRequest)
+			return
+		}
 		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
@@ -105,41 +119,54 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	counterService := service.NewCounterService()
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "application/json")
 
-	if counterService.GetCounter() >= config.MaxSell {
-		fmt.Fprintf(w, "3")
-		return
-	}
+	counterService := service.NewCounterService()
 
 	layout := "2006-01-02 15-04-05"
+	counter := counterService.GetCounter()
+	var statuses []string
 
-	endSell, err := time.Parse(layout, config.EndSell)
+	for i := 0; i < len(counter); i++ {
+		amount := counter[i]
+
+		if amount < config.MaxSell[i] {
+			statuses = append(statuses, "3")
+			continue
+		}
+
+		endSell, err := time.Parse(layout, config.EndSell)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		startSell, err := time.Parse(layout, config.StartSell)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		now := time.Now()
+
+		if now.Before(startSell) {
+			statuses = append(statuses, "1")
+			continue
+		}
+
+		if endSell.Before(now) {
+			statuses = append(statuses, "3")
+			continue
+		}
+
+		statuses = append(statuses, "2")
+	}
+	// send here json
+	response, err := json.Marshal(statuses)
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
-
-	startSell, err := time.Parse(layout, config.StartSell)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	now := time.Now()
-
-	if now.Before(startSell) {
-		fmt.Fprintf(w, "1")
-		return
-	}
-
-	if endSell.Before(now) {
-		fmt.Fprintf(w, "3")
-		return
-	}
-
-	fmt.Fprintf(w, "2")
+	w.Write(response)
 	return
 }
 
