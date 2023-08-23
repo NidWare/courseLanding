@@ -130,6 +130,7 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	layout := "2006-01-02 15-04-05"
 	counter := counterService.GetCounter()
+	fmt.Println(counter)
 	var statuses []string
 
 	for i := 0; i < len(counter); i++ {
