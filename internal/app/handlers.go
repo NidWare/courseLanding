@@ -136,7 +136,7 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(counter); i++ {
 		amount := counter[i]
 
-		if amount < config.MaxSell[i] {
+		if amount >= config.MaxSell[i] {
 			statuses = append(statuses, "3")
 			continue
 		}
