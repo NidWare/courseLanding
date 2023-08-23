@@ -39,12 +39,14 @@ func (p *paymentService) MakePayment(value float64, fullName string, email strin
 		ID string `json:"id"`
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&paymentResponse)
+	var responsePay map[string]any
+
+	err = json.NewDecoder(resp.Body).Decode(&responsePay)
 	if err != nil {
 		return "", "", err
 	}
 
-	fmt.Println(paymentResponse)
+	fmt.Println(responsePay)
 	confirmationURL := paymentResponse.Confirmation.ConfirmationURL
 	paymentID := paymentResponse.ID
 
