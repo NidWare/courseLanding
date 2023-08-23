@@ -41,7 +41,7 @@ func (c *counterService) GetCounter() [3]int {
 }
 
 func getAllRates() ([3]int, error) {
-	db, err := sql.Open("sqlite3", "your_database_file_path.db")
+	db, err := sql.Open("sqlite3", "counter.db")
 	if err != nil {
 		return [3]int{}, err
 	}
