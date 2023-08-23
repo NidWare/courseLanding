@@ -51,7 +51,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	w.Header().Set("Access-Control-Allow-Origin", "https://www.trabun.ai")
+	//w.Header().Set("Access-Control-Allow-Origin", "https://www.trabun.ai")
 
 	type RequestParams struct {
 		Rate  int    `json:"rate"`
