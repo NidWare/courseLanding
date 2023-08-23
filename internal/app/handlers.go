@@ -115,6 +115,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(id, params.Email)
+	fmt.Println(url)
 	err = insertOrder(id, params.Email)
 	if err != nil {
 		log.Fatal(err)
