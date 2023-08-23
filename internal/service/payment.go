@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"net/http"
 )
@@ -43,6 +44,7 @@ func (p *paymentService) MakePayment(value float64, fullName string, email strin
 		return "", "", err
 	}
 
+	fmt.Println(paymentResponse)
 	confirmationURL := paymentResponse.Confirmation.ConfirmationURL
 	paymentID := paymentResponse.ID
 
