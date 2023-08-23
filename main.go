@@ -185,7 +185,7 @@ func checkPayments(c service.CourseService) {
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
-			if amount == "10.00" {
+			if amount == "15000.00" {
 				counterService.Increment(1)
 				c.Invite(email, 1)
 			}
