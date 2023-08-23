@@ -108,5 +108,5 @@ func setHeaders(req *http.Request) {
 	uid := uuid.New().String()
 	req.Header.Set("Idempotence-Key", uid)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Basic 233943:live_ntj41YKTpjuM97qEj56ykuvAGfqJ13SPRJldPpuqnDg")
+	req.Header.Set("Authorization", "Basic MjMzOTQzOmxpdmVfbnRqNDFZS1RwanVNOTdxRWo1NnlrdXZBR2ZxSjEzU1BSSmxkUHB1cW5EZw==")
 }
