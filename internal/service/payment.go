@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"net/http"
 )
@@ -39,14 +38,11 @@ func (p *paymentService) MakePayment(value float64, fullName string, email strin
 		ID string `json:"id"`
 	}
 
-	var responsePay map[string]any
-
-	err = json.NewDecoder(resp.Body).Decode(&responsePay)
+	err = json.NewDecoder(resp.Body).Decode(&paymentResponse)
 	if err != nil {
 		return "", "", err
 	}
 
-	fmt.Println(responsePay)
 	confirmationURL := paymentResponse.Confirmation.ConfirmationURL
 	paymentID := paymentResponse.ID
 
@@ -109,5 +105,5 @@ func setHeaders(req *http.Request) {
 	uid := uuid.New().String()
 	req.Header.Set("Idempotence-Key", uid)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Basic MjMzOTQzOmxpdmVfc3htZE9URnhnRlF5ZnIxbWlRQ3lELUhOMVQ5NzJTNHJnY2JpbkZMVFVfQQ==")
+	req.Header.Set("Authorization", "Basic 233943:live_ntj41YKTpjuM97qEj56ykuvAGfqJ13SPRJldPpuqnDg")
 }
