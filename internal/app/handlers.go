@@ -58,11 +58,16 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		Name  string `json:"name"`
 		Email string `json:"email"`
 		Phone string `json:"phone"`
+		Admin string `json:"admin"`
 	}
 
 	var params RequestParams
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if params.Admin == "" {
 		return
 	}
 
@@ -76,17 +81,17 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch params.Rate {
 	case 1:
-		if counter[0] > config.MaxSell[0] {
+		if counter[0] > config.MaxSell[0] && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusBadRequest)
 			return
 		}
-		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 2:
-		if counter[1] > config.MaxSell[1] {
+		if counter[1] > config.MaxSell[1] && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusBadRequest)
 			return
 		}
@@ -96,7 +101,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case 3:
-		if counter[2] > config.MaxSell[2] {
+		if counter[2] > config.MaxSell[2] && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusBadRequest)
 			return
 		}

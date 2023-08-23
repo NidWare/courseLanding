@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
@@ -63,6 +64,27 @@ func main() {
 			log.Fatal(err)
 		}
 	}(db)
+
+	createTableQuery := `
+        CREATE TABLE IF NOT EXISTS rates (
+            one INTEGER NOT NULL,
+            two INTEGER NOT NULL,
+            three INTEGER NOT NULL
+        )
+    `
+	_, err = db.Exec(createTableQuery)
+	if err != nil {
+		fmt.Println("Error creating table:", err)
+		return
+	}
+
+	// Insert the default row into the 'rates' table
+	insertQuery := "INSERT INTO rates (one, two, three) VALUES (0, 0, 0)"
+	_, err = db.Exec(insertQuery)
+	if err != nil {
+		fmt.Println("Error inserting default row:", err)
+		return
+	}
 
 	//services => application
 	repository := service.NewRepositoryService(db)
