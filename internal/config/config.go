@@ -1,8 +1,8 @@
 package config
 
-const MaxSell1 int = 1
-const MaxSell2 int = 25
-const MaxSell3 int = 25
+const MaxSell1 int = 0
+const MaxSell2 int = 0
+const MaxSell3 int = 0
 
 var MaxSell = [3]int{MaxSell1, MaxSell2, MaxSell3}
 
