@@ -67,11 +67,6 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if params.Admin == "" {
-		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var url string
 	var err error
 	var id string
