@@ -13,6 +13,9 @@ FROM golang:1.20
 
 WORKDIR /app
 
+# Copy everything from the build stage
+COPY --from=build /app .
+
 # Assuming the certs will be mounted at /etc/letsencrypt
 # No need to copy them here
 
