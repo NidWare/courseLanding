@@ -83,7 +83,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		a.CounterService.Increment(1)
 		counter := a.CounterService.GetCounter()
 		if counter[0] > config.MaxSell[0] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusCreated)
+			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
@@ -95,7 +95,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		a.CounterService.Increment(2)
 		counter := a.CounterService.GetCounter()
 		if counter[1] > config.MaxSell[1] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusCreated)
+			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, phone)
@@ -107,7 +107,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		a.CounterService.Increment(3)
 		counter := a.CounterService.GetCounter()
 		if counter[2] > config.MaxSell[2] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusCreated)
+			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, phone)
