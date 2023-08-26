@@ -77,12 +77,12 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	phone := convertPhoneNumber(params.Phone)
 
-	counter := a.CounterService.GetCounter()
-
 	switch params.Rate {
 	case 1:
+		a.CounterService.Increment(1)
+		counter := a.CounterService.GetCounter()
 		if counter[0] > config.MaxSell[0] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusBadRequest)
+			http.Error(w, "Sold out", http.StatusCreated)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
@@ -91,8 +91,10 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case 2:
+		a.CounterService.Increment(2)
+		counter := a.CounterService.GetCounter()
 		if counter[1] > config.MaxSell[1] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusBadRequest)
+			http.Error(w, "Sold out", http.StatusCreated)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, phone)
@@ -101,8 +103,10 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case 3:
+		a.CounterService.Increment(3)
+		counter := a.CounterService.GetCounter()
 		if counter[2] > config.MaxSell[2] && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusBadRequest)
+			http.Error(w, "Sold out", http.StatusCreated)
 			return
 		}
 		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, phone)
@@ -114,8 +118,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Rate is not found", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(id, params.Email)
-	fmt.Println(url)
+	fmt.Println("id:"+id, " email:"+params.Email, " url:"+url)
 	err = insertOrder(id, params.Email)
 	if err != nil {
 		log.Fatal(err)

@@ -39,11 +39,6 @@ func main() {
 	}()
 
 	course := service.NewCourseService()
-	// Создание таблицы, если её нет
-	err := createTableIfNotExists()
-	if err != nil {
-		log.Fatalf("Failed to create table: %v", err)
-	}
 
 	// Запуск фоновой проверки платежей
 	go func(course service.CourseService) {
@@ -64,19 +59,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}(db)
-
-	createTableQuery := `
-        CREATE TABLE IF NOT EXISTS rates (
-            one INTEGER NOT NULL,
-            two INTEGER NOT NULL,
-            three INTEGER NOT NULL
-        )
-    `
-	_, err = db.Exec(createTableQuery)
-	if err != nil {
-		fmt.Println("Error creating table:", err)
-		return
-	}
 
 	// Insert the default row into the 'rates' table
 	insertQuery := "INSERT INTO rates (one, two, three) VALUES (0, 0, 0)"
@@ -130,27 +112,6 @@ type PaymentResponse struct {
 	Amount struct {
 		Value string `json:"value"`
 	} `json:"amount"`
-}
-
-func createTableIfNotExists() error {
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS orders (
-		payment_id TEXT PRIMARY KEY,
-		email TEXT
-	);`
-
-	_, err = db.Exec(createTableQuery)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func checkPayments(c service.CourseService) {
