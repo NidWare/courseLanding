@@ -68,7 +68,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if params.Admin == "" {
-		http.Error(w, "Sold out", http.StatusCreated)
+		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Sold out", http.StatusCreated)
 			return
 		}
-		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return

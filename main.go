@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
@@ -59,14 +58,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}(db)
-
-	// Insert the default row into the 'rates' table
-	insertQuery := "INSERT INTO rates (one, two, three) VALUES (0, 0, 0)"
-	_, err = db.Exec(insertQuery)
-	if err != nil {
-		fmt.Println("Error inserting default row:", err)
-		return
-	}
 
 	//services => application
 	repository := service.NewRepositoryService(db)
@@ -146,7 +137,7 @@ func checkPayments(c service.CourseService) {
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
-			if amount == "15000.00" {
+			if amount == "10.00" {
 				counterService.Increment(1)
 				c.Invite(email, 1)
 			}
