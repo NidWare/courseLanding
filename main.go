@@ -18,7 +18,7 @@ import (
 const (
 	apiURL     = "https://api.yookassa.ru/v3/payments/"
 	username   = "233943"
-	password   = "live_UcVgvEGQhiow2l_nJYE-GYSOjt0mBdiqRBbP7N-_xdE"
+	password   = "live_oDHcU_HCKCUQd4KEZQNkisbBvvSQqUZRh_2lWIOTsrs"
 	dbPath     = "orders.db"
 	checkDelay = 1 * time.Minute
 )
