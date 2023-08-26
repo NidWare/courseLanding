@@ -68,6 +68,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if params.Admin == "" {
+		http.Error(w, "Sold out", http.StatusCreated)
 		return
 	}
 
