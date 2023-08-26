@@ -110,6 +110,7 @@ func checkPayments(c service.CourseService) {
 	fmt.Println("Started to check course:")
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
+		fmt.Println(err)
 		log.Fatal(err)
 	}
 	defer db.Close()
@@ -127,6 +128,7 @@ func checkPayments(c service.CourseService) {
 		if err := rows.Scan(&paymentID, &email); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("Started to check course:", paymentID, email)
 
 		status, amount, err := checkPaymentStatus(paymentID)
 		if err != nil {
