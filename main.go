@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
@@ -19,7 +20,7 @@ const (
 	username   = "233943"
 	password   = "live_UcVgvEGQhiow2l_nJYE-GYSOjt0mBdiqRBbP7N-_xdE"
 	dbPath     = "orders.db"
-	checkDelay = 5 * time.Minute
+	checkDelay = 1 * time.Minute
 )
 
 func main() {
@@ -106,6 +107,7 @@ type PaymentResponse struct {
 }
 
 func checkPayments(c service.CourseService) {
+	fmt.Println("Started to check course:")
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatal(err)
@@ -133,20 +135,16 @@ func checkPayments(c service.CourseService) {
 		}
 
 		if status == "succeeded" {
-			counterService := service.NewCounterService()
 			if status == "succeeded" {
 				paymentsToDelete = append(paymentsToDelete, paymentID)
 			}
-			if amount == "15000.00" {
-				counterService.Increment(1)
+			if amount == "10.00" {
 				c.Invite(email, 1)
 			}
 			if amount == "30000.00" {
-				counterService.Increment(2)
 				c.Invite(email, 2)
 			}
 			if amount == "60000.00" {
-				counterService.Increment(3)
 				c.Invite(email, 3)
 			}
 		}
