@@ -2,6 +2,7 @@ package main
 
 import (
 	"courseLanding/internal/app"
+	"courseLanding/internal/config"
 	"courseLanding/internal/service"
 	"crypto/tls"
 	"database/sql"
@@ -17,8 +18,6 @@ import (
 
 const (
 	apiURL     = "https://api.yookassa.ru/v3/payments/"
-	username   = "233943"
-	password   = "live_oDHcU_HCKCUQd4KEZQNkisbBvvSQqUZRh_2lWIOTsrs"
 	dbPath     = "orders.db"
 	checkDelay = 1 * time.Minute
 )
@@ -164,7 +163,8 @@ func checkPaymentStatus(paymentID string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	req.SetBasicAuth(username, password)
+
+	req.SetBasicAuth(config.Username, config.Password)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

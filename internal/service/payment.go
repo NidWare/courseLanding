@@ -2,9 +2,15 @@ package service
 
 import (
 	"bytes"
+	"courseLanding/internal/config"
 	"encoding/json"
 	"github.com/google/uuid"
 	"net/http"
+)
+
+const (
+	username = "233943"
+	password = "live_oDHcU_HCKCUQd4KEZQNkisbBvvSQqUZRh_2lWIOTsrs"
 )
 
 type PaymentService interface {
@@ -105,5 +111,6 @@ func setHeaders(req *http.Request) {
 	uid := uuid.New().String()
 	req.Header.Set("Idempotence-Key", uid)
 	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(config.Username, config.Password)
 	req.Header.Set("Authorization", "Basic MjMzOTQzOmxpdmVfbnRqNDFZS1RwanVNOTdxRWo1NnlrdXZBR2ZxSjEzU1BSSmxkUHB1cW5EZw==")
 }
