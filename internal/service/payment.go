@@ -112,5 +112,4 @@ func setHeaders(req *http.Request) {
 	req.Header.Set("Idempotence-Key", uid)
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(config.Username, config.Password)
-	req.Header.Set("Authorization", "Basic MjMzOTQzOmxpdmVfbnRqNDFZS1RwanVNOTdxRWo1NnlrdXZBR2ZxSjEzU1BSSmxkUHB1cW5EZw==")
 }
