@@ -149,7 +149,7 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < 3; i++ {
 		clicks, _ := a.RepositoryService.GetClicks(i)
-		limit, _ := a.RepositoryService.GetClicks(i)
+		limit, _ := a.RepositoryService.GetLimit(i)
 
 		if clicks >= limit {
 			statuses[i] = 3
