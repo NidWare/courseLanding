@@ -4,24 +4,37 @@ import (
 	"bytes"
 	"courseLanding/internal/config"
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 const (
-	username = "233943"
-	password = "live_oDHcU_HCKCUQd4KEZQNkisbBvvSQqUZRh_2lWIOTsrs"
+	apiURL = "https://api.yookassa.ru/v3/payments/"
 )
 
 type PaymentService interface {
 	MakePayment(value float64, fullName string, email string, phone string) (string, string, error)
+	CheckPayments()
 }
 
 type paymentService struct {
+	c CourseService
+	r RepositoryService
 }
 
-func NewPaymentService() PaymentService {
-	return &paymentService{}
+type PaymentResponse struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+	Amount struct {
+		Value string `json:"value"`
+	} `json:"amount"`
+}
+
+func NewPaymentService(c CourseService, r RepositoryService) PaymentService {
+	return &paymentService{c: c, r: r}
 }
 
 func (p *paymentService) MakePayment(value float64, fullName string, email string, phone string) (string, string, error) {
@@ -105,6 +118,64 @@ func createPaymentDataPayload(value float64, fullName, email string, phone strin
 			},
 		},
 	}
+}
+
+func (p *paymentService) CheckPayments() {
+	fmt.Println("Started to check course payments:")
+	paymentsByIds := p.r.LoadOrders()
+	var paymentsToDelete []string
+
+	for paymentId, email := range paymentsByIds {
+		status, amount, err := checkPaymentStatus(paymentId)
+		if err != nil {
+			log.Printf("Failed to check payment status for %s: %v", paymentId, err)
+			continue
+		}
+
+		if status == "succeeded" {
+			paymentsToDelete = append(paymentsToDelete, paymentId)
+
+			if amount == "10.00" {
+				p.c.Invite(email, 1)
+			}
+			if amount == "20000.00" {
+				p.c.Invite(email, 2)
+			}
+			if amount == "35000.00" {
+				p.c.Invite(email, 3)
+			}
+		}
+	}
+
+	p.r.DeleteOrdersByIds(paymentsToDelete)
+}
+
+func checkPaymentStatus(paymentID string) (string, string, error) {
+	req, err := http.NewRequest("GET", apiURL+paymentID, nil)
+	if err != nil {
+		return "", "", err
+	}
+
+	req.SetBasicAuth(config.Username, config.Password)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+
+	var paymentResponse PaymentResponse
+	if err := json.Unmarshal(body, &paymentResponse); err != nil {
+		return "", "", err
+	}
+
+	return paymentResponse.Status, paymentResponse.Amount.Value, nil
 }
 
 func setHeaders(req *http.Request) {

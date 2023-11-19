@@ -2,23 +2,17 @@ package main
 
 import (
 	"courseLanding/internal/app"
-	"courseLanding/internal/config"
 	"courseLanding/internal/service"
 	"crypto/tls"
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 )
 
 const (
-	apiURL     = "https://api.yookassa.ru/v3/payments/"
-	dbPath     = "orders.db"
 	checkDelay = 1 * time.Minute
 )
 
@@ -31,38 +25,50 @@ func main() {
 		}),
 	}
 
+	//dbCounter
+	dbCounter, err := sql.Open("sqlite3", "./counter.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbOrders, err := sql.Open("sqlite3", "./orders.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(dbCounter)
+
+	defer func(dbOrders *sql.DB) {
+		err := dbOrders.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(dbOrders)
+
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil {
 			log.Fatalf("HTTP server failed: %v", err)
 		}
 	}()
 
+	//services => application
+	repository := service.NewRepositoryService(dbCounter, dbOrders)
+	counter := service.NewCounterService()
 	course := service.NewCourseService()
+	payment := service.NewPaymentService(course, repository)
 
 	// Запуск фоновой проверки платежей
-	go func(course service.CourseService) {
+	go func() {
 		for {
-			checkPayments(course)
+			payment.CheckPayments()
 			time.Sleep(checkDelay)
 		}
-	}(course)
-
-	//db
-	db, err := sql.Open("sqlite3", "./counter.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(db)
-
-	//services => application
-	repository := service.NewRepositoryService(db)
-	counter := service.NewCounterService()
-	payment := service.NewPaymentService()
+	}()
 
 	application := app.Application{
 		CounterService:    counter,
@@ -75,6 +81,8 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/buy", application.BuyHandler).Methods("POST", "OPTIONS")
 	r.HandleFunc("/status", application.StatusHandler).Methods("GET")
+	r.HandleFunc("/limit", application.LimitHandler).Methods("GET")
+	r.HandleFunc("/enable", application.EnableHandler).Methods("GET")
 
 	//server
 	cert, err := tls.LoadX509KeyPair("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem")
@@ -84,104 +92,13 @@ func main() {
 
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		// other TLS settings here
 	}
 
 	server := &http.Server{
 		Addr:      ":443",
 		Handler:   r,
 		TLSConfig: tlsConfig,
-		//other server settings here
 	}
 
-	log.Fatal(server.ListenAndServeTLS("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem"))
-}
-
-type PaymentResponse struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	Amount struct {
-		Value string `json:"value"`
-	} `json:"amount"`
-}
-
-func checkPayments(c service.CourseService) {
-	fmt.Println("Started to check course:")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	// Изменен запрос для выбора и payment_id, и email
-	rows, err := db.Query("SELECT payment_id, email FROM orders")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	var paymentsToDelete []string
-
-	for rows.Next() {
-		var paymentID, email string
-		if err := rows.Scan(&paymentID, &email); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Started to check course:", paymentID, email)
-
-		status, amount, err := checkPaymentStatus(paymentID)
-		if err != nil {
-			log.Printf("Failed to check payment status for %s: %v", paymentID, err)
-			continue
-		}
-
-		if status == "succeeded" {
-			if status == "succeeded" {
-				paymentsToDelete = append(paymentsToDelete, paymentID)
-			}
-			if amount == "15000.00" {
-				c.Invite(email, 1)
-			}
-			if amount == "30000.00" {
-				c.Invite(email, 2)
-			}
-			if amount == "60000.00" {
-				c.Invite(email, 3)
-			}
-		}
-	}
-	rows.Close() // close the rows explicitly
-	for _, paymentID := range paymentsToDelete {
-		if _, err := db.Exec("DELETE FROM orders WHERE payment_id = ?", paymentID); err != nil {
-			log.Printf("Failed to delete payment %s from orders: %v", paymentID, err)
-		}
-	}
-}
-
-func checkPaymentStatus(paymentID string) (string, string, error) {
-	req, err := http.NewRequest("GET", apiURL+paymentID, nil)
-	if err != nil {
-		return "", "", err
-	}
-
-	req.SetBasicAuth(config.Username, config.Password)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", "", err
-	}
-
-	var paymentResponse PaymentResponse
-	if err := json.Unmarshal(body, &paymentResponse); err != nil {
-		return "", "", err
-	}
-
-	return paymentResponse.Status, paymentResponse.Amount.Value, nil
+	log.Fatal(server.ListenAndServe())
 }

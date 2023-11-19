@@ -1,15 +1,15 @@
 package app
 
 import (
-	"courseLanding/internal/config"
 	"courseLanding/internal/service"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
-	"time"
 )
 
 type Application struct {
@@ -73,39 +73,51 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	phone := convertPhoneNumber(params.Phone)
 
+	clicks, err := a.RepositoryService.GetClicks(params.Rate)
+	limit, err := a.RepositoryService.GetLimit(params.Rate)
+
 	switch params.Rate {
 	case 1:
-		a.CounterService.Increment(1)
-		counter := a.CounterService.GetCounter()
-		if counter[0] > config.MaxSell[0] && params.Admin == "" {
+		err := a.RepositoryService.IncrementClicks(1)
+		if err != nil {
+			fmt.Println("failed incrementing")
+		}
+
+		if clicks > limit && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
-		url, id, err = a.PaymentService.MakePayment(15000.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(10.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 2:
-		a.CounterService.Increment(2)
-		counter := a.CounterService.GetCounter()
-		if counter[1] > config.MaxSell[1] && params.Admin == "" {
+		err := a.RepositoryService.IncrementClicks(2)
+		if err != nil {
+			fmt.Println("failed incrementing")
+		}
+
+		if clicks > limit && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
-		url, id, err = a.PaymentService.MakePayment(30000.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(20000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
 		}
 	case 3:
-		a.CounterService.Increment(3)
-		counter := a.CounterService.GetCounter()
-		if counter[2] > config.MaxSell[2] && params.Admin == "" {
+		err := a.RepositoryService.IncrementClicks(3)
+		if err != nil {
+			fmt.Println("failed incrementing")
+		}
+
+		if clicks > limit && params.Admin == "" {
 			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 			return
 		}
-		url, id, err = a.PaymentService.MakePayment(60000.00, params.Name, params.Email, phone)
+		url, id, err = a.PaymentService.MakePayment(35000.00, params.Name, params.Email, phone)
 		if err != nil {
 			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 			return
@@ -119,64 +131,101 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprintf(w, url)
+	fmt.Fprintf(w, url) // здесь воозвращаем УРЛ просто текстом
 }
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
+	status, err := ReadBoolFromFile("status.txt")
+	var statuses [3]int
+	var resp []byte
 
-	counterService := service.NewCounterService()
-
-	layout := "2006-01-02 15-04-05"
-	counter := counterService.GetCounter()
-	fmt.Println(counter)
-	var statuses []string
-
-	for i := 0; i < len(counter); i++ {
-		amount := counter[i]
-
-		if amount >= config.MaxSell[i] {
-			statuses = append(statuses, "3")
-			continue
-		}
-
-		endSell, err := time.Parse(layout, config.EndSell)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		startSell, err := time.Parse(layout, config.StartSell)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		now := time.Now()
-
-		if now.Before(startSell) {
-			statuses = append(statuses, "1")
-			continue
-		}
-
-		if endSell.Before(now) {
-			statuses = append(statuses, "3")
-			continue
-		}
-
-		statuses = append(statuses, "2")
+	if !status {
+		statuses = [3]int{1, 1, 1}
+		resp, err = json.Marshal(statuses)
+		w.Write(resp)
+		return
 	}
-	// send here json
-	response, err := json.Marshal(statuses)
+
+	for i := 0; i < 3; i++ {
+		clicks, _ := a.RepositoryService.GetClicks(i)
+		limit, _ := a.RepositoryService.GetClicks(i)
+
+		if clicks >= limit {
+			statuses[i] = 3
+		} else {
+			statuses[i] = 2
+		}
+		resp, err = json.Marshal(statuses)
+		w.Write(resp)
+	}
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error while getting statuses")
 	}
-	w.Write(response)
-	return
+
+}
+
+func (a *Application) LimitHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, sec-ch-ua, sec-ch-ua-mobile, sec-ch-ua-platform")
+
+	// Parse the query parameter 'count'
+	countStr := r.URL.Query().Get("count")
+	if countStr == "" {
+		fmt.Fprintf(w, "Count parameter is missing")
+		return
+	}
+
+	rate := r.URL.Query().Get("rate")
+	if countStr == "" {
+		fmt.Fprintf(w, "Count parameter is missing")
+		return
+	}
+	rateForDb, err := strconv.Atoi(rate)
+
+	// Convert count to an integer
+	count, err := strconv.Atoi(countStr)
+	if err != nil {
+		fmt.Fprintf(w, "Invalid count value")
+		return
+	}
+
+	a.RepositoryService.UpdateLimit(rateForDb, count)
+	// Print the count value
+	fmt.Println("Count:", count)
+}
+
+func (a *Application) EnableHandler(w http.ResponseWriter, r *http.Request) {
+	value := FlipBoolInFile("status.txt")
+
+	w.Write([]byte(value))
 }
 
 // code standarts ignored:
+
+func ReadBoolFromFile(filename string) (bool, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return false, err
+	}
+
+	return string(data) == "1", nil
+}
+
+// FlipBoolInFile flips the boolean value in the file.
+func FlipBoolInFile(filename string) string {
+	value, _ := ReadBoolFromFile(filename)
+
+	newValue := "0"
+	if !value {
+		newValue = "1"
+	}
+
+	ioutil.WriteFile(filename, []byte(newValue), 0666)
+
+	return newValue
+}
 
 func insertOrder(id string, email string) error {
 	// Open SQLite database

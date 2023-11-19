@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"courseLanding/internal/config"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,11 +19,8 @@ type courseService struct {
 func NewCourseService() CourseService {
 	return &courseService{}
 }
-func (c *courseService) Invite(email string, rate int) {
-	apiURL := "https://skillspace.ru/api/open/v1/course/student-invite"
 
-	// Parameters
-	courseID := "14074"
+func (c *courseService) Invite(email string, rate int) {
 	var groupID string
 	switch rate {
 	case 1:
@@ -32,12 +30,8 @@ func (c *courseService) Invite(email string, rate int) {
 	case 3:
 		groupID = "24379"
 	}
-	token := "a70c4e05-26f2-3b73-8235-39833dd49747"
-	name := "Student Name"
-	comment := "Your Comment"
 
-	// Create, send request and process response
-	req, err := createRequest(apiURL, token, email, name, comment, courseID, groupID)
+	req, err := createRequest(config.EduURL, config.Token, email, "Student Name", "Comment", "14074", groupID)
 	if err != nil {
 		panic(err)
 	}
@@ -49,9 +43,7 @@ func (c *courseService) Invite(email string, rate int) {
 	defer resp.Body.Close()
 
 	response := processResponse(resp)
-
-	// Output the response
-	fmt.Println("Response:", response)
+	fmt.Println("Response for email:", email, response)
 }
 
 func createRequest(apiURL, token, email, name, comment, courseID, groupID string) (*http.Request, error) {
