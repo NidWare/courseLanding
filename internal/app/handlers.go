@@ -135,7 +135,17 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	status, err := ReadBoolFromFile("status.txt")
 	var statuses map[int]int
 	var resp []byte
