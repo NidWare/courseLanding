@@ -157,8 +157,8 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 			statuses[i] = 2
 		}
 		resp, err = json.Marshal(statuses)
-		w.Write(resp)
 	}
+	w.Write(resp)
 	if err != nil {
 		fmt.Println("Error while getting statuses")
 	}
