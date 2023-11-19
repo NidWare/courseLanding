@@ -92,7 +92,6 @@ func main() {
 
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS12,
 	}
 
 	server := &http.Server{
@@ -101,5 +100,5 @@ func main() {
 		TLSConfig: tlsConfig,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(server.ListenAndServeTLS("/app/fullchain.pem", "/app/privkey.pem"))
 }
