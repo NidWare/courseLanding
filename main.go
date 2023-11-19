@@ -26,12 +26,12 @@ func main() {
 	}
 
 	//dbCounter
-	dbCounter, err := sql.Open("sqlite3", "./counter.db")
+	dbCounter, err := sql.Open("sqlite3", "../counter.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dbOrders, err := sql.Open("sqlite3", "./orders.db")
+	dbOrders, err := sql.Open("sqlite3", "../orders.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func main() {
 	r.HandleFunc("/enable", application.EnableHandler).Methods("GET")
 
 	//server
-	cert, err := tls.LoadX509KeyPair("./fullchain.pem", "./privkey.pem")
+	cert, err := tls.LoadX509KeyPair("../fullchain.pem", "../privkey.pem")
 	if err != nil {
 		log.Fatalf("failed to load keys: %v", err)
 	}
