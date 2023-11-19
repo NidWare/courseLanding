@@ -1,26 +1,28 @@
-# Build stage
-FROM golang:1.20 AS build
+# Use the official Go image from the Docker Hub
+FROM golang:1.20-alpine
 
+# Install SQLite and gcc
+RUN apk add --no-cache sqlite gcc musl-dev
+
+# Set the Current Working Directory inside the container
 WORKDIR /app
 
+# Copy go mod and sum files
 COPY go.mod go.sum ./
+
+# Download all dependencies
 RUN go mod download
+
+# Copy the source from the current directory to the Working Directory inside the container
 COPY . .
-RUN go build -o dist/main main.go
 
-# Final stage
-FROM golang:1.20
+# Build the application
+RUN go build -o main .
 
-EXPOSE 443
-EXPOSE 80
+RUN ls -al /app
 
-WORKDIR /app
-
-# Copy everything from the build stage
-COPY --from=build /app .
-
-# Assuming the certs will be mounted at /etc/letsencrypt
-# No need to copy them here
+# Expose port 8080 to the outside world
+EXPOSE 80 443
 
 # Run the application
-ENTRYPOINT ["/app/dist/main"]
+CMD ["./main"]

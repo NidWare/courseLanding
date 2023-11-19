@@ -1,33 +1,29 @@
 #!/bin/bash
 
-IMAGE_NAME="landing"
-CONTAINER_NAME="landing"
+CONTAINER_NAME="golang_server"
+VOLUME_PATH="$(pwd)"
 
-function build_and_start_container {
-  # Сборка докер-контейнера
-  docker build -t $IMAGE_NAME .
-
-  # Остановка и удаление контейнера, если он уже существует
-  docker stop $CONTAINER_NAME 2>/dev/null
-  docker rm $CONTAINER_NAME 2>/dev/null
-
-  # Запуск контейнера с автоматическим перезапуском после каждого краша на порту 8443
-  docker run -d --restart always --name $CONTAINER_NAME -p 8443:8443 $IMAGE_NAME
-  echo "Container started successfully!"
-}
-
-function stop_and_remove_container {
-  # Остановка и удаление контейнера
-  docker stop $CONTAINER_NAME
-  docker rm $CONTAINER_NAME
-  echo "Container stopped and removed successfully!"
-}
-
-# Проверка команды, переданной в скрипт
-if [ "$1" == "start" ]; then
-  build_and_start_container
-elif [ "$1" == "stop" ]; then
-  stop_and_remove_container
-else
-  echo "Usage: $0 [start|stop]"
-fi
+case $1 in
+  start)
+    # Build and start the container detached with restart policy
+    docker build -t golang_server .
+    docker run -d --restart=unless-stopped --name $CONTAINER_NAME -p 80:80 -p 443:443 -v $VOLUME_PATH/counter.db:/app/counter.db -v $VOLUME_PATH/status.txt:/app/status.txt -v $VOLUME_PATH/orders.db:/app/orders.db golang_server
+    ;;
+  stop)
+    # Stop and remove the container
+    docker stop $CONTAINER_NAME
+    docker rm $CONTAINER_NAME
+    ;;
+  restart)
+    # Restart the container
+    docker restart $CONTAINER_NAME
+    ;;
+  status)
+    # Check the status of the container
+    docker ps -a | grep $CONTAINER_NAME
+    ;;
+  *)
+    echo "Usage: ./manager.sh {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
