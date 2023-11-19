@@ -24,11 +24,11 @@ func (c *courseService) Invite(email string, rate int) {
 	var groupID string
 	switch rate {
 	case 1:
-		groupID = "22749"
+		groupID = "32904"
 	case 2:
-		groupID = "24378"
+		groupID = "32905"
 	case 3:
-		groupID = "24379"
+		groupID = "32906"
 	}
 
 	req, err := createRequest(config.EduURL, config.Token, email, "Student Name", "Comment", "21298", groupID)
