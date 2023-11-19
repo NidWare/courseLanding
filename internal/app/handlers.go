@@ -147,6 +147,8 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	statuses = make(map[int]int)
+
 	for i := 1; i < 4; i++ {
 		clicks, _ := a.RepositoryService.GetClicks(i)
 		limit, _ := a.RepositoryService.GetLimit(i)
