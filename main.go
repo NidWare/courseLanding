@@ -85,7 +85,7 @@ func main() {
 	r.HandleFunc("/enable", application.EnableHandler).Methods("GET")
 
 	//server
-	cert, err := tls.LoadX509KeyPair("/app/fullchain.pem", "/app/fullchain.pem")
+	cert, err := tls.LoadX509KeyPair("/app/fullchain.pem", "/app/privkey.pem")
 	if err != nil {
 		log.Fatalf("failed to load keys: %v", err)
 	}
