@@ -3,7 +3,6 @@ package main
 import (
 	"courseLanding/internal/app"
 	"courseLanding/internal/service"
-	"crypto/tls"
 	"database/sql"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -85,20 +84,11 @@ func main() {
 	r.HandleFunc("/enable", application.EnableHandler).Methods("GET")
 
 	//server
-	cert, err := tls.LoadX509KeyPair("/app/fullchain.pem", "/app/privkey.pem")
-	if err != nil {
-		log.Fatalf("failed to load keys: %v", err)
-	}
 
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
+	certFile := "./fullchain.pem"
+	keyFile := "./privkey.pem"
 
-	server := &http.Server{
-		Addr:      ":443",
-		Handler:   r,
-		TLSConfig: tlsConfig,
+	if err := http.ListenAndServeTLS(":443", certFile, keyFile, r); err != nil {
+		log.Fatal(err)
 	}
-
-	log.Fatal(server.ListenAndServeTLS("/app/fullchain.pem", "/app/privkey.pem"))
 }
