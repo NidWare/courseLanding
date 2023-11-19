@@ -11,6 +11,9 @@ RUN go build -o dist/main main.go
 # Final stage
 FROM golang:1.20
 
+EXPOSE 443
+EXPOSE 80
+
 WORKDIR /app
 
 # Copy everything from the build stage
