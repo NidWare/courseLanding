@@ -85,7 +85,7 @@ func main() {
 	r.HandleFunc("/enable", application.EnableHandler).Methods("GET")
 
 	//server
-	cert, err := tls.LoadX509KeyPair("/etc/letsencrypt/live/lsukhinin.site/fullchain.pem", "/etc/letsencrypt/live/lsukhinin.site/privkey.pem")
+	cert, err := tls.LoadX509KeyPair("./fullchain.pem", "./privkey.pem")
 	if err != nil {
 		log.Fatalf("failed to load keys: %v", err)
 	}

@@ -64,7 +64,7 @@ func (r *repositoryService) IncrementClicks(rateID int) error {
 }
 
 func (r *repositoryService) UpdateLimit(rateID int, newLimit int) error {
-	_, err := r.db.Exec("UPDATE rateCounter SET limit = ? WHERE rate_id = ?", newLimit, rateID)
+	_, err := r.db.Exec("UPDATE rateCounter SET \"limit\" = ? WHERE rate_id = ?", newLimit, rateID)
 	return err
 }
 
@@ -76,6 +76,6 @@ func (r *repositoryService) GetClicks(rateID int) (int, error) {
 
 func (r *repositoryService) GetLimit(rateID int) (int, error) {
 	var limit int
-	err := r.db.QueryRow("SELECT limit FROM rateCounter WHERE rate_id = ?", rateID).Scan(&limit)
+	err := r.db.QueryRow("SELECT \"limit\" FROM rateCounter WHERE rate_id = ?", rateID).Scan(&limit)
 	return limit, err
 }
