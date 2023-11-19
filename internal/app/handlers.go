@@ -137,17 +137,17 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	status, err := ReadBoolFromFile("status.txt")
-	var statuses [3]int
+	var statuses map[int]int
 	var resp []byte
 
 	if !status {
-		statuses = [3]int{1, 1, 1}
+		statuses = map[int]int{1: 1, 2: 1, 3: 1}
 		resp, err = json.Marshal(statuses)
 		w.Write(resp)
 		return
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 1; i < 4; i++ {
 		clicks, _ := a.RepositoryService.GetClicks(i)
 		limit, _ := a.RepositoryService.GetLimit(i)
 
