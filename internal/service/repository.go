@@ -47,6 +47,8 @@ func (r *repositoryService) LoadOrders() map[string]string {
 	defer rows.Close()
 	var paymentsByIds map[string]string
 
+	paymentsByIds = make(map[string]string)
+
 	for rows.Next() {
 		var paymentID, email string
 		if err := rows.Scan(&paymentID, &email); err != nil {
