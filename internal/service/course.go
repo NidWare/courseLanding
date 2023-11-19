@@ -31,7 +31,7 @@ func (c *courseService) Invite(email string, rate int) {
 		groupID = "24379"
 	}
 
-	req, err := createRequest(config.EduURL, config.Token, email, "Student Name", "Comment", "14074", groupID)
+	req, err := createRequest(config.EduURL, config.Token, email, "Student Name", "Comment", "21298", groupID)
 	if err != nil {
 		panic(err)
 	}
