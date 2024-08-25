@@ -126,7 +126,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Rate is not found", http.StatusBadRequest)
 		return
 	}
-	fmt.Println("id:"+id, " email:"+params.Email, " url:"+url)
+	fmt.Println("New order id:"+id, " email:"+params.Email, " url:"+url)
 	err = insertOrder(id, params.Email)
 	if err != nil {
 		log.Fatal(err)
