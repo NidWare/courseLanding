@@ -54,11 +54,11 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Access-Control-Allow-Origin", "https://www.trabun.ai")
 
 	type RequestParams struct {
-		Rate  int    `json:"rate"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
-		Phone string `json:"phone"`
-		Admin string `json:"admin"`
+		RateID int    `json:"rate"`
+		Name   string `json:"name"`
+		Email  string `json:"email"`
+		Phone  string `json:"phone"`
+		Admin  string `json:"admin"`
 	}
 
 	var params RequestParams
@@ -73,60 +73,34 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	phone := convertPhoneNumber(params.Phone)
 
-	clicks, err := a.RepositoryService.GetClicks(params.Rate)
-	limit, err := a.RepositoryService.GetLimit(params.Rate)
+	rate, err := a.RepositoryService.GetRate(params.RateID)
+	if err != nil {
+		http.Error(w, "RateID is not found", http.StatusBadRequest)
+	}
 
-	switch params.Rate {
-	case 1:
-		err := a.RepositoryService.IncrementClicks(1)
-		if err != nil {
-			fmt.Println("failed incrementing")
-		}
+	if err != nil {
+		fmt.Println("failed incrementing")
+	}
 
-		if clicks > limit && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
-			return
-		}
-		url, id, err = a.PaymentService.MakePayment(10000.00, params.Name, params.Email, phone)
-		if err != nil {
-			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
-			return
-		}
-	case 2:
-		err := a.RepositoryService.IncrementClicks(2)
-		if err != nil {
-			fmt.Println("failed incrementing")
-		}
-
-		if clicks > limit && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
-			return
-		}
-		url, id, err = a.PaymentService.MakePayment(20000.00, params.Name, params.Email, phone)
-		if err != nil {
-			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
-			return
-		}
-	case 3:
-		err := a.RepositoryService.IncrementClicks(3)
-		if err != nil {
-			fmt.Println("failed incrementing")
-		}
-
-		if clicks > limit && params.Admin == "" {
-			http.Error(w, "Sold out", http.StatusMethodNotAllowed)
-			return
-		}
-		url, id, err = a.PaymentService.MakePayment(35000.00, params.Name, params.Email, phone)
-		if err != nil {
-			http.Error(w, "Problems with ukassa", http.StatusBadRequest)
-			return
-		}
-	default:
-		http.Error(w, "Rate is not found", http.StatusBadRequest)
+	if rate.Clicks > rate.Limit && params.Admin == "" {
+		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 		return
 	}
-	fmt.Println("New order id:"+id, " email:"+params.Email, " url:"+url)
+
+	price, err := strconv.ParseFloat(rate.Price, 64)
+	if err != nil {
+		text := fmt.Sprintf("Error during converting %s to %f", rate.Price, price)
+		http.Error(w, text, http.StatusMethodNotAllowed)
+	}
+
+	url, id, err = a.PaymentService.MakePayment(price, params.Name, params.Email, phone)
+	if err != nil {
+		http.Error(w, "Problems with ukassa", http.StatusBadRequest)
+		return
+	}
+
+	// end
+	fmt.Println("New order id: "+id, " email:"+params.Email, " url:"+url)
 	err = insertOrder(id, params.Email)
 	if err != nil {
 		log.Fatal(err)

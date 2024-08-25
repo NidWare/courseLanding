@@ -13,6 +13,8 @@ type RepositoryService interface {
 	UpdateLimit(rateID int, newLimit int) error
 	GetClicks(rateID int) (int, error)
 	GetLimit(rateID int) (int, error)
+
+	GetRate(rateID int) (RateCounter, error)
 }
 
 type repositoryService struct {
@@ -80,4 +82,18 @@ func (r *repositoryService) GetLimit(rateID int) (int, error) {
 	var limit int
 	err := r.db.QueryRow("SELECT \"limit\" FROM rateCounter WHERE rate_id = ?", rateID).Scan(&limit)
 	return limit, err
+}
+
+func (r *repositoryService) GetRate(rateID int) (RateCounter, error) {
+	var rateCounter RateCounter
+
+	query := "SELECT rate_id, clicks, limit, price FROM rate_counters WHERE rate_id = ?"
+	row := r.db.QueryRow(query, rateID)
+
+	err := row.Scan(&rateCounter.RateID, &rateCounter.Clicks, &rateCounter.Limit, &rateCounter.Price)
+	if err != nil {
+		return rateCounter, err
+	}
+
+	return rateCounter, nil
 }
