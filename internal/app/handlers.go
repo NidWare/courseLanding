@@ -68,7 +68,6 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var url string
-	var err error
 	var id string
 
 	phone := convertPhoneNumber(params.Phone)
