@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 type RepositoryService interface {
@@ -14,7 +15,8 @@ type RepositoryService interface {
 	GetClicks(rateID int) (int, error)
 	GetLimit(rateID int) (int, error)
 
-	GetRate(rateID int) (RateCounter, error)
+	GetRateByID(rateID int) (Rate, error)
+	GetRateByPrice(price string) (Rate, error)
 }
 
 type repositoryService struct {
@@ -22,11 +24,12 @@ type repositoryService struct {
 	dbOrders *sql.DB
 }
 
-type RateCounter struct {
-	RateID int
-	Clicks int
-	Limit  int
-	Price  string
+type Rate struct {
+	RateID  int
+	Clicks  int
+	Limit   int
+	Price   float64
+	GroupID int
 }
 
 func NewRepositoryService(db *sql.DB, dbOrders *sql.DB) RepositoryService {
@@ -84,16 +87,36 @@ func (r *repositoryService) GetLimit(rateID int) (int, error) {
 	return limit, err
 }
 
-func (r *repositoryService) GetRate(rateID int) (RateCounter, error) {
-	var rateCounter RateCounter
+func (r *repositoryService) GetRateByID(rateID int) (Rate, error) {
+	var rate Rate
 
-	query := "SELECT rate_id, clicks, limit, price FROM rate_counters WHERE rate_id = ?"
+	query := "SELECT rate_id, clicks, limit, price, group_id FROM rate WHERE rate_id = ?"
 	row := r.db.QueryRow(query, rateID)
 
-	err := row.Scan(&rateCounter.RateID, &rateCounter.Clicks, &rateCounter.Limit, &rateCounter.Price)
+	err := row.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
 	if err != nil {
-		return rateCounter, err
+		return rate, err
 	}
 
-	return rateCounter, nil
+	return rate, nil
+}
+
+func (r *repositoryService) GetRateByPrice(price string) (Rate, error) {
+	var rate Rate
+
+	query := "SELECT rate_id, clicks, limit, price, group_id FROM rate WHERE price = ?"
+
+	priceFloat, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		return rate, err
+	}
+
+	row := r.db.QueryRow(query, priceFloat)
+
+	err = row.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
+	if err != nil {
+		return rate, err
+	}
+
+	return rate, nil
 }

@@ -135,15 +135,12 @@ func (p *paymentService) CheckPayments() {
 		if status == "succeeded" {
 			paymentsToDelete = append(paymentsToDelete, paymentId)
 
-			if amount == "10000.00" {
-				p.c.Invite(email, 1)
+			rate, err := p.r.GetRateByPrice(amount)
+			if err != nil {
+				fmt.Printf("Error during getting rate for amount: %d", amount)
 			}
-			if amount == "20000.00" {
-				p.c.Invite(email, 2)
-			}
-			if amount == "35000.00" {
-				p.c.Invite(email, 3)
-			}
+
+			p.c.Invite(email, rate.GroupID)
 		}
 	}
 

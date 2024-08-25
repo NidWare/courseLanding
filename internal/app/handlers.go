@@ -72,7 +72,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	phone := convertPhoneNumber(params.Phone)
 
-	rate, err := a.RepositoryService.GetRate(params.RateID)
+	rate, err := a.RepositoryService.GetRateByID(params.RateID)
 	if err != nil {
 		http.Error(w, "RateID is not found", http.StatusBadRequest)
 	}
@@ -86,13 +86,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	price, err := strconv.ParseFloat(rate.Price, 64)
-	if err != nil {
-		text := fmt.Sprintf("Error during converting %s to %f", rate.Price, price)
-		http.Error(w, text, http.StatusMethodNotAllowed)
-	}
-
-	url, id, err = a.PaymentService.MakePayment(price, params.Name, params.Email, phone)
+	url, id, err = a.PaymentService.MakePayment(rate.Price, params.Name, params.Email, phone)
 	if err != nil {
 		http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 		return
