@@ -114,34 +114,33 @@ func (a *Application) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status, err := ReadBoolFromFile("status.txt")
-	var statuses map[int]int
+
+	var statuses map[int]string
 	var resp []byte
+	statuses = make(map[int]string)
 
-	if !status {
-		statuses = map[int]int{1: 1, 2: 1, 3: 1}
-		resp, err = json.Marshal(statuses)
-		w.Write(resp)
-		return
+	rates, err := a.RepositoryService.GetAllRates()
+	if err != nil {
+		http.Error(w, "error during getting rates", 406)
 	}
 
-	statuses = make(map[int]int)
-
-	for i := 1; i < 4; i++ {
-		clicks, _ := a.RepositoryService.GetClicks(i)
-		limit, _ := a.RepositoryService.GetLimit(i)
-
-		if clicks >= limit {
-			statuses[i] = 3
-		} else {
-			statuses[i] = 2
+	for _, rate := range rates {
+		if !status {
+			statuses[rate.RateID] = "off"
+			continue
 		}
-		resp, err = json.Marshal(statuses)
+		if rate.Clicks >= rate.Limit {
+			statuses[rate.RateID] = "stop"
+		} else {
+			statuses[rate.RateID] = "start"
+		}
 	}
+
+	resp, err = json.Marshal(statuses)
 	w.Write(resp)
 	if err != nil {
 		fmt.Println("Error while getting statuses")
 	}
-
 }
 
 func (a *Application) LimitHandler(w http.ResponseWriter, r *http.Request) {

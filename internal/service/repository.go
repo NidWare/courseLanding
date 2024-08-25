@@ -17,6 +17,7 @@ type RepositoryService interface {
 
 	GetRateByID(rateID int) (Rate, error)
 	GetRateByPrice(price string) (Rate, error)
+	GetAllRates() ([]Rate, error)
 }
 
 type repositoryService struct {
@@ -119,4 +120,31 @@ func (r *repositoryService) GetRateByPrice(price string) (Rate, error) {
 	}
 
 	return rate, nil
+}
+
+func (r *repositoryService) GetAllRates() ([]Rate, error) {
+	var rates []Rate
+
+	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate"
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rate Rate
+		err := rows.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		rates = append(rates, rate)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return rates, nil
 }
