@@ -90,7 +90,7 @@ func (r *repositoryService) GetLimit(rateID int) (int, error) {
 func (r *repositoryService) GetRateByID(rateID int) (Rate, error) {
 	var rate Rate
 
-	query := "SELECT rate_id, clicks, limit, price, group_id FROM rate WHERE rate_id = ?"
+	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate WHERE rate_id = ?"
 	row := r.db.QueryRow(query, rateID)
 
 	err := row.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
@@ -104,7 +104,7 @@ func (r *repositoryService) GetRateByID(rateID int) (Rate, error) {
 func (r *repositoryService) GetRateByPrice(price string) (Rate, error) {
 	var rate Rate
 
-	query := "SELECT rate_id, clicks, limit, price, group_id FROM rate WHERE price = ?"
+	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate WHERE price = ?"
 
 	priceFloat, err := strconv.ParseFloat(price, 64)
 	if err != nil {
