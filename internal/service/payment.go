@@ -137,7 +137,7 @@ func (p *paymentService) CheckPayments() {
 
 			rate, err := p.r.GetRateByPrice(amount)
 			if err != nil {
-				fmt.Printf("Error during getting rate for amount: %d", amount)
+				fmt.Printf("Error during getting rate for amount: %s", amount)
 			}
 
 			p.c.Invite(email, rate.GroupID)
