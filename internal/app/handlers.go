@@ -91,7 +91,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (rate.Clicks > rate.Limit || )  || params.Admin == "" {
+	if (rate.Clicks > rate.Limit) || params.Admin == "" {
 		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 		return
 	}
