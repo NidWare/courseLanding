@@ -81,7 +81,17 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("failed incrementing")
 	}
 
-	if rate.Clicks > rate.Limit && params.Admin == "" {
+	status, err := ReadBoolFromFile("status.txt")
+	if err != nil {
+		http.Error(w, "Error during getting status", http.StatusMethodNotAllowed)
+	}
+
+	if status == false {
+		http.Error(w, "Ended", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if (rate.Clicks > rate.Limit || )  || params.Admin == "" {
 		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 		return
 	}
