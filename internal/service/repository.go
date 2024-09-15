@@ -67,7 +67,7 @@ func (r *repositoryService) LoadOrders() map[string]string {
 }
 
 func (r *repositoryService) IncrementClicks(rateID int) error {
-	_, err := r.db.Exec("UPDATE rateCounter SET clicks = clicks + 1 WHERE rate_id = ?", rateID)
+	_, err := r.db.Exec("UPDATE rate SET clicks = clicks + 1 WHERE rate_id = ?", rateID)
 	return err
 }
 

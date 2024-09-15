@@ -91,12 +91,13 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (rate.Clicks > rate.Limit) || params.Admin == "" {
+	if (rate.Clicks > rate.Limit) && params.Admin == "" {
 		http.Error(w, "Sold out", http.StatusMethodNotAllowed)
 		return
 	}
 
 	url, id, err = a.PaymentService.MakePayment(rate.Price, params.Name, params.Email, phone)
+	err = a.RepositoryService.IncrementClicks(rate.RateID)
 	if err != nil {
 		http.Error(w, "Problems with ukassa", http.StatusBadRequest)
 		return
