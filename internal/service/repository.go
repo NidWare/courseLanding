@@ -72,7 +72,7 @@ func (r *repositoryService) IncrementClicks(rateID int) error {
 }
 
 func (r *repositoryService) UpdateLimit(rateID int, newLimit int) error {
-	_, err := r.db.Exec("UPDATE rateCounter SET \"limit\" = ? WHERE rate_id = ?", newLimit, rateID)
+	_, err := r.db.Exec("UPDATE rate SET \"limit\" = ? WHERE rate_id = ?", newLimit, rateID)
 	return err
 }
 
