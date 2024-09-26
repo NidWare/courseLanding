@@ -105,15 +105,22 @@ func (r *repositoryService) GetRateByID(rateID int) (Rate, error) {
 func (r *repositoryService) GetRateByPrice(price string) (Rate, error) {
 	var rate Rate
 
-	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate WHERE price = ?"
-
+	// Parse the price into a float
 	priceFloat, err := strconv.ParseFloat(price, 64)
 	if err != nil {
 		return rate, err
 	}
 
-	row := r.db.QueryRow(query, priceFloat)
+	// Calculate the lower bound (10% lower than the provided price)
+	lowerBound := priceFloat * 0.9
 
+	// Adjust the query to use BETWEEN for the price range
+	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate WHERE price BETWEEN ? AND ?"
+
+	// Execute the query with the lower and upper bounds
+	row := r.db.QueryRow(query, lowerBound, priceFloat)
+
+	// Scan the result into the rate struct
 	err = row.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
 	if err != nil {
 		return rate, err
