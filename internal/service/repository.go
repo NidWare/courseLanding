@@ -113,12 +113,13 @@ func (r *repositoryService) GetRateByPrice(price string) (Rate, error) {
 
 	// Calculate the lower bound (10% lower than the provided price)
 	lowerBound := priceFloat * 0.9
+	higherBound := priceFloat * 1.2
 
 	// Adjust the query to use BETWEEN for the price range
 	query := "SELECT rate_id, clicks, \"limit\", price, group_id FROM rate WHERE price BETWEEN ? AND ?"
 
 	// Execute the query with the lower and upper bounds
-	row := r.db.QueryRow(query, lowerBound, priceFloat)
+	row := r.db.QueryRow(query, lowerBound, higherBound)
 
 	// Scan the result into the rate struct
 	err = row.Scan(&rate.RateID, &rate.Clicks, &rate.Limit, &rate.Price, &rate.GroupID)
