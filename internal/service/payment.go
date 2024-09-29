@@ -133,12 +133,13 @@ func (p *paymentService) CheckPayments() {
 		}
 
 		if status == "succeeded" {
-			paymentsToDelete = append(paymentsToDelete, paymentId)
-
 			rate, err := p.r.GetRateByPrice(amount)
 			if err != nil {
 				fmt.Printf("Error during getting rate for amount: %s", amount)
+				return
 			}
+
+			paymentsToDelete = append(paymentsToDelete, paymentId)
 
 			p.c.Invite(email, rate.GroupID)
 		}
