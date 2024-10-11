@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -50,11 +49,11 @@ func (p *paymentService) MakePayment(value float64, fullName string, email strin
 		return "", "", err
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Failed to read body")
-	}
-	fmt.Println("Body:", string(body))
+	//body, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	fmt.Println("Failed to read body")
+	//}
+	//fmt.Println("Body:", string(body))
 
 	defer resp.Body.Close()
 
