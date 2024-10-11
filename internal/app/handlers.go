@@ -74,11 +74,7 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 
 	rate, err := a.RepositoryService.GetRateByID(params.RateID)
 	if err != nil {
-		http.Error(w, "RateID is not found", http.StatusBadRequest)
-	}
-
-	if err != nil {
-		fmt.Println("failed incrementing")
+		http.Error(w, "RateID is not found"+err.Error(), http.StatusBadRequest)
 	}
 
 	status, err := ReadBoolFromFile("status.txt")
@@ -97,9 +93,13 @@ func (a *Application) BuyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url, id, err = a.PaymentService.MakePayment(rate.Price, params.Name, params.Email, phone)
+	if err != nil {
+		http.Error(w, "Problems with ukassa"+err.Error(), http.StatusBadRequest)
+		return
+	}
 	err = a.RepositoryService.IncrementClicks(rate.RateID)
 	if err != nil {
-		http.Error(w, "Problems with ukassa", http.StatusBadRequest)
+		http.Error(w, "Problems with incrementing", http.StatusBadRequest)
 		return
 	}
 
